@@ -1,0 +1,4 @@
+train: D:\FPT\Kì học\fall2024\DPL302m\lab nhỏ\helmet detect.v8i 2.voc\helmet detect.v8i.voc\train
+val: D:\FPT\Kì học\fall2024\DPL302m\lab nhỏ\helmet detect.v8i 2.voc\helmet detect.v8i.voc\valid
+nc: 2                          # Số lượng lớp (class)
+names: ["helmet", "no helmet"]  # Tên của các lớp

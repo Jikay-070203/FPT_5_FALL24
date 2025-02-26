@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFace Verification</title>
+</head>
+<body>
+    <h1>FACE RECOGNIZE</h1>
+    <input type="file" id="image1" accept="image/*"><br><br>
+    <input type="file" id="image2" accept="image/*"><br><br>
+
+    <label for="model">Choose Model:</label>
+    <select id="model">
+        <option value="Facenet">Facenet</option>
+        <option value="VGG-Face">VGG-Face</option>
+        <option value="ArcFace">ArcFace</option>
+    </select><br><br>
+
+    <button onclick="verifyFaces()">Start</button>
+    <h2>Result</h2>
+    <pre id="result">Waiting for result...</pre>
+
+    <script>
+        async function verifyFaces() {
+            // Update result message while processing
+            document.getElementById('result').innerText = "Processing...";
+
+            const img1 = document.getElementById('image1').files[0];
+            const img2 = document.getElementById('image2').files[0];
+            const model = document.getElementById('model').value;
+
+            if (!img1 || !img2) {
+                alert("Please upload both images!");
+                document.getElementById('result').innerText = "Waiting for result...";
+                return;
+            }
+
+            // Convert images to base64
+            const img1Base64 = await toBase64(img1);
+            const img2Base64 = await toBase64(img2);
+
+            // Send verification request to the backend
+            fetch('http://127.0.0.1:5000/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image1: img1Base64.split(',')[1],
+                    image2: img2Base64.split(',')[1],
+                    model_name: model
+                })
+            })
+            
+            .then(response => response.json())
+            .then(data => {
+                // Handle both success and error cases
+                if (data.error) {
+                    document.getElementById('result').innerText = "Error: " + data.error;
+                } else {
+                    // Display the final verification result (True/False)
+                    // Also display additional information from DeepFace 
+                    // like distance, threshold, model, facial areas
+                    document.getElementById('result').innerText = `
+                        Verification Result: ${data.verified}
+                        Distance: ${data.distance}
+                        Threshold: ${data.threshold}
+                        Model: ${data.model}
+                        Facial Areas: ${JSON.stringify(data.facial_areas)}
+                        Time: ${data.time}
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById('result').innerText = "Error processing images. Please try again.";
+            });
+        }
+
+        // Helper function to convert image file to base64
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+Link này dùng để thông báo những nội dung cần phải làm để sinh viên có thể xem lại khi cần. Lưu ý, file này chỉ có chức năng xem, không có chức năng chỉnh sửa.
+Vui lòng chọn đúng sheet môn học của mình.
+https://docs.google.com/spreadsheets/d/1hy1KdmWleO-3br0V21iL-iWU75FAppxlAsC_uWBAfDo/edit?usp=sharing

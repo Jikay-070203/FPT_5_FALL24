@@ -1,0 +1,38 @@
+b1:chạy active môi trường 
+B2:pip install -U label-studio
+vào quick start chọn add user :chọn lệnh sau về để chạy trên terminal 
+label-studio start --username <username> --password <password>
+điền user là mail và pass bất kì 
+==> xuất ra 1 link web bấm vào và đăng nhặp cái user và pass hồi nảy vào 
+B3:tạo project rồi từ đó import dần data vào ,lưu ý chỉ được dưới 100 data mỗi lần ,import xong
+tick chọn hết id và all label => sẽ yêu cầu tạo classs
+B4:đánh label với chọn all id và đánh label
+B5:đánh xong export ra yolo 
+B6:ctrl +Cđể tắt label
+B8 chạy terminal lệnh pip install ultralytics
+để vài yolo
+vào https://docs.ultralytics.com/
+sau đó vào quickstart rồi kéo xuống use utralytics with python copy code bỏ vào main 
+
+from ultralytics import YOLO
+
+
+# Load a pretrained YOLO model (recommended for training)
+model = YOLO("yolov8n.pt")
+
+# Train the model using the 'coco8.yaml' dataset for 3 epochs
+results = model.train(data="coco8.yaml", epochs=3)
+[Hình ảnh] 
+rồi vào theo cái này :ultralytics/cfg/datasets/coco8.yaml
+sau khi train xong
+thì đó vẫn chưa là data của ta
+phải tạo 1 file mydata.yaml
+rồi vào lại :ultralytics/cfg/datasets/coco8.yaml
+rồi copy đoạn mã đó rồi chỉ đưa các class cần thiết vào và đường dẫn đến file cần là xong
+tạo 1 folder data chưa 2 folder là images và label trong mỗi folder có 2 folder là train và vail
+phải copy đúng với tên file của label cũ ms chạy
+đưa copy path tới folder dataset vừa tạo
+chia cái train và vail ra 70/30
+ảnh nào bỏ vào images train thì label phải bỏ đúng y v trong train của lable
+vào phần model của ultr và tải model mới nhât về
+có thể thay tên vào file hoặc tự tải

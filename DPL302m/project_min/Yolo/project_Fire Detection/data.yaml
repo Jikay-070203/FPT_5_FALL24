@@ -1,0 +1,13 @@
+train: D:\FPT\Kì học\fall2024\DPL302m\project_min\Fire Detection.v1i.yolov9\train\images
+val: D:\FPT\Kì học\fall2024\DPL302m\project_min\Fire Detection.v1i.yolov9\valid\images
+test: D:\FPT\Kì học\fall2024\DPL302m\project_min\Fire Detection.v1i.yolov9\test\images
+
+nc: 1
+names: ['0']
+
+roboflow:
+  workspace: rehman-2vlay
+  project: fire-detection-vdtmc
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/rehman-2vlay/fire-detection-vdtmc/dataset/1

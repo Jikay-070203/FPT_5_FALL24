@@ -1,0 +1,12 @@
+names:
+- '0'
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: fire-detection-vdtmc
+  url: https://universe.roboflow.com/rehman-2vlay/fire-detection-vdtmc/dataset/1
+  version: 1
+  workspace: rehman-2vlay
+test: D:\FPT\Kì học\fall2024\DPL302m\yolo\Fire-Detection-1\test\images
+train: D:\FPT\Kì học\fall2024\DPL302m\yolo\Fire-Detection-1\train\images
+val: D:\FPT\Kì học\fall2024\DPL302m\yolo\Fire-Detection-1\valid\images

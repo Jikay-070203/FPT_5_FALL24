@@ -1,0 +1,35 @@
+CONV (Convolutional Layer): Lớp tích chập giúp trích xuất các đặc trưng từ dữ liệu đầu vào (thường là ảnh).
+RELU (Rectified Linear Unit): Hàm kích hoạt giúp đưa các giá trị âm về 0, giữ lại các giá trị dương.
+POOL (Pooling Layer): Lớp gộp giúp giảm kích thước dữ liệu bằng cách chọn giá trị lớn nhất (MaxPooling) hoặc giá trị trung bình (AveragePooling) từ một vùng nhỏ.
+FC (Fully Connected Layer): Lớp kết nối đầy đủ nơi mọi neuron ở lớp trước kết nối với mỗi neuron ở lớp này.
+SOFTMAX: Hàm softmax để chuyển đổi đầu ra thành các xác suất, sử dụng trong phân loại.
+
+
+Input volume (khối dữ liệu đầu vào): Đây là dữ liệu đầu vào cho lớp tích chập, thường là các hình ảnh hoặc các biểu diễn đặc trưng. 3 kênh màu đỏ xanh ...
+
+Output volume (khối dữ liệu đầu ra): Đây là kết quả của quá trình tích chập, tức là dữ liệu đầu vào sau khi được biến đổi thông qua các phép tích chập với bộ lọc (filter/kernel).
+
+
+Zero padding: Để giữ nguyên kích thước của dữ liệu đầu vào, lớp tích chập có thể thêm các giá trị bằng 0 xung quanh các biên của khối dữ liệu.
+B1:xác định độ rộng padding là số pixel thêm vào viền
+Độ rộng padding: Độ rộng padding là số lượng pixel bạn muốn thêm vào mỗi cạnh của ảnh
+b2:Tạo viền: Tạo một viền xung quanh ảnh gốc bằng cách thêm các pixel có giá trị bằng 0. Số lượng pixel được thêm vào mỗi cạnh của ảnh bằng với độ rộng padding.
+
+B3:Kết quả: Kết quả là một ảnh có kích thước lớn hơn, với các pixel mới được thêm vào có giá trị bằng 0
+
+Convolution function:  lấy lát cắt đó rồi tích chập nhân với bộ lọc để tạo thành 1 ảnh đầu ra nhỏ hơn
+
+4 - Pooling Layer
+Lớp Pooling giúp đơn giản hóa ảnh đầu vào, giữ lại thông tin quan trọng và cải thiện hiệu suất của mạng nơ ron tích chập.max là trong lát cắt có số nào lớn là lấy còn avager là lấy trung bình .
+
+
+Convolutional Layer Backpropagation: Trong lớp tích chập, backpropagation được sử dụng để tính toán đạo hàm của hàm mất mát đối với:
+dA: Đạo hàm của hàm mất mát đối với đầu vào của lớp tích chập.
+
+dW: Đạo hàm của hàm mất mát đối với trọng số của bộ lọc.
+
+db: Đạo hàm của hàm mất mát đối với bias của bộ lọc.
+đổi với max thì sẽ lấy max/gradient còn avagern thì lấy tb /gradient
+
+5.2.1 Max Pooling - Backward Pass
+Ví dụ: Nếu một vùng có giá trị là [[1, 3], [4, 2]], thì giá trị lớn nhất là 4, ma trận "mask" tương ứng sẽ là [[0, 0], [1, 0]].
