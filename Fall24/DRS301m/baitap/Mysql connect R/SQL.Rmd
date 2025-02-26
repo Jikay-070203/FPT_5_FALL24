@@ -1,0 +1,251 @@
+```{r}
+install.packages("DBI", dependencies=TRUE)
+
+```
+
+```{r}
+install.packages("RMySQL",dependencies=TRUE)
+```
+
+```{r}
+install.packages("RMariaDB",dependencies=TRUE)
+```
+
+```{r}
+library(DBI)
+library(RMySQL)
+library(RMariaDB)
+```
+
+
+```{r}
+#thiết lập thông tin kết nối 
+#host <- "localhost"
+#port <- 3306
+#dbname <- "classicmodels"
+#user <- "root"
+#password <- ""
+
+# Tạo kết nối
+con <- dbConnect(RMySQL::MySQL(), 
+                 dbname = "lab1_dsr",
+                 host = "localhost",
+                 user = "root",
+                 password = "",
+                 port = 3306)  
+
+
+print(con)
+```
+
+```{r}
+con <- dbConnect(RMySQL::MySQL(),
+                 dbname = dbname,
+                 host = host,
+                 port = port,
+                 user = user,
+                 password = password)
+```
+
+```{r}
+#tạo connect to sql 
+conn <- tryCatch({
+  dbConnect(RMariaDB::MariaDB(),
+            dbname = dbname,
+            host = host,
+            port = port,
+            user = user,
+            password = password)
+}, error = function(e){
+  stop("khong the ket noi den csdl",e$message)
+})
+
+#kiem tra ket noi 
+if (!dbIsValid(conn)){
+  stop("khong the ket noi den csdl")
+} else {
+  print("ket noi thanh cong")
+}
+```
+
+```{r}
+dbExecute(conn,"
+          CREATE TABLE employee(
+          supportRepId INT NOT NULL AUTO_INCREMENT,
+          FirstName VARCHAR(255),
+          LastName VARCHAR(255),
+          Department VARCHAR(255),
+          Phone VARCHAR(20),
+          Email VARCHAR(255),
+          PRIMARY KEY (SupportRepId)
+          )")
+```
+
+```{r}
+dbExecute(conn,"
+          INSERT INTO employee (SupportRepId,FirstName,LastName,Department,Phone,Email)
+          vALUES
+          (1, 'Triệu Văn', 'QUang', 'Kinh doanh', '07856643a435', 'quang@gmail.com'),
+          (2, 'Nguyễn Việt', 'Thnah', 'Mảketing', '044457224872', 'thanh@gmail.com'),
+          (3, 'Trân Thanh', 'Tài', 'Sale', '094a7845454', 'tài@gmail.com'),
+          (4, 'Quản văn', 'Binh', 'Tư vấn', '0872312312121', 'hai@gmail.com'),
+          (5, 'Vũ văn', 'Hải', 'Giám đốc', '07213242 54', 'hoa@gmail.com')
+          ")
+print("them du lieu vao bang nhan vien")
+
+```
+
+```{r}
+result <- dbGetQuery(conn, "SELECT * FROM employee")
+print(result)
+```
+
+```{r}
+query <- "SELECT name FROM sqlite_master WHERE type ='table'"
+
+result <- dbGetQuery(conn,)
+```
+
+```{r}
+DBI::dbWriteTable(conn,"nhan_vien",data.frame(
+  CustomerId = 1:5,
+  FirstName = c("Nguyễn XUân", "Đường trân", "Khiếu hoàng", "Chu Thị", "Nguyễn văn"),
+  Company = c("FPTU HCM", "Thép Quốc Thái", "VCB HCM", "HUTECH", "An Khang"),
+  LastName = c("Huy", "Toàn", "Lâm", "Nhường", "Hòa"),
+  Address = c("Phú Hữu", "Nam Long", "Thủ ĐỨc", "Thủ ĐỨc", "HCM"),
+  City = c("Thủ ĐỨc", "Long An", "Biên Hòa", "Thủ Dầu 1", "Trảng Bàng"),
+  State = c("Đồng Nai", "Long An", "Đồng nai", "HCM", "Tây Ninh"),
+  Title = c("Giảng viên", "Tổng GĐ", "Nhân viên", "nhân viên kế toán", "kinh doanh"),
+  PostalCode = c("7000000", "6000000", "5000000", "7000010", "6000000"),
+  Phone = c("078566433435", "0644572242", "0947845454", "08723112121", "0721242545454"),
+  Fax = c("078566433435", "0644572242", "0947845454", "08723112121", "0721242545454"),
+  Email = c("Huy@gmail.com", "Toan@gmail.com", "lam@gmail.com", "nhuong@gmail.com", "hoa@gmail.com"),
+  SupportRepId = 1:5
+),overwrite = TRUE)
+```
+
+```{r}
+result <- dbGetQuery(conn, "SELECT * FROM customers")
+print(result)
+```
+
+```{r}
+#truy vấn dữ liệu từ bảng invoices
+invoices_data <- tbl(conn,"invoices")
+#Hiển thị thông tin bảng invoices
+result <- dbGetQuery(conn,"SELECT * FROM invoices")
+print(result)
+```
+
+```{r}
+#lọc các hàng có giá trị trong cột Total lớn hơn 15
+invoices_data_filtered <- invoices_data %>%
+  filter(Total > 15)
+
+print(invoices_data_filtered)
+```
+
+```{r}
+#Sắp xếp theo nhóm và giá trị trong cột total giảm dần
+invoices_data <- invoices_data %>%
+  arrange(BillingCountry,desc(Total))
+invoices_data
+```
+
+```{r}
+#Tóm tắt các giá trị trung bình của cột total cho mỗi nhóm trong cột BillingCountry
+summary_data <- invoices_data %>%
+  group_by(BillingCountry) %>%
+  summarise(avg_total = mean(Total, na.rm=TRUE))
+summary_data
+```
+
+```{r}
+#In kết quả 
+print(invoices_data)
+
+#Tạo cột mới Billing local kết hợp dữ liệu 2 cột BillingAddress và Billing City
+invoices_data <- invoices_data %>%
+  #mutate():Hàm này thực hiện việc thêm hoặc thay đổi cột trong dataframe
+  #paste(): được sử dụng để kết hợp (ghép) các giá trị từ các cột 
+  mutate(BillingLocal = paste(BillingAddress, BillingCity, sep = ", "))
+
+invoices_data
+```
+
+```{r}
+#kiểm tra dữ liệu của bảng
+result <- dbGetQuery(conn, "SELECT * FROM nhan_vien")
+print(result)
+```
+
+```{r}
+#loại bỏ dòng trùng lặp 
+DBI::dbExecute(conn,"
+               DELETE FROM nhan_vien AS a
+               WHERE EXISTS(
+                  SELECT 1
+                  FROM nhan_vien AS b
+                  WHERE a.CustomerId = b.CustomerId
+                  AND a.FirstName = b.FirstName
+                  AND a.Company = b.Company
+                  AND a.LastName = b.LastName
+                  AND a.Address = b.Address
+                  AND a.City = b.City
+                  AND a.State = b.State
+                  AND a.Title = b.Title
+                  AND a.Phone = b.Phone
+                  AND a.PostalCode = b.PostalCode
+                  AND a.Fax = b.Fax
+                  AND a.Email = b.Email
+                  AND a.SupportRepId = b.SupportRepId
+                  AND a.ROWID > b.ROWID
+               );
+               ")
+```
+
+```{r}
+#them "Ghi_chu" vào bảng "invoices"
+dbExecute(conn, "ALTER TABLE invoices ADD COLUMN Ghi_chu TEXT")
+
+#kiem tra du lieu cua bang "invoices" sau khi them cot moi 
+result <- dbGetQuery(conn,"SELECT * FROM invoices")
+print(result)
+```
+
+```{r}
+#Sử dụng lệnh ALTER TABLE để đổi tên cột 
+dbExecute(conn,"ALTER TABLE invoices RENAME COLUMN Ghi_chu TO Notes")
+
+#Hiển thị kết quả sau khi đổi tên cột 
+result <- dbGetQuery(conn,"SELECT * FROM invoices")
+print(result)
+```
+
+```{r}
+#sử dụng lệnh ALTER TABLE để xóa cột Notes
+dbExecute(conn,"ALTER TABLE invoices DROP COLUMN Notes")
+
+#Hiển thị kết quả sau khi xóa tên cột 
+result <- dbGetQuery(conn,"PRAGMA table_info('invoices")
+print(result)
+```
+
+```{r}
+invoices_data <- dbl(conn,"invoices")
+
+#lọc ra các dòng có giá trị null hoặc NA trong cột BillingPostalCode
+filtered_data <- invoices_data %>%
+  filter(is.na(BillingPostalCode)|BillingPostalCode == "" )
+
+print(filtered_data)
+```
+
+```{r}
+#Vẽ biểu đồ thống kê 
+ggplot(summary_data, aes(x = BillingPostalCode, y = total_amount)) + 
+  gemo_bar(stat = "indentity", fill = "skyblue") +
+  labs(x = "Billing country",y = "Total Amount", title = "Total Amount by Billing COuntry") +
+  theme_minimal()+
+  theme(axis.text.x)
+```

@@ -1,0 +1,32 @@
+```{r}
+install.packages("DBI")
+install.packages("RMySQL")
+```
+
+```{r}
+library(DBI)
+library(RMySQL)
+```
+
+```{r}
+install.packages("RMySQL")
+
+```
+
+```{r}
+# Tạo kết nối
+con <- dbConnect(RMySQL::MySQL(), 
+                 dbname = "classicmodels",
+                 host = "localhost",
+                 user = "root",
+                 password = "",
+                 port = 3306)  
+
+
+print(con)
+
+```
+
+```{r}
+SHOW TABLES
+```

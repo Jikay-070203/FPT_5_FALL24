@@ -1,0 +1,94 @@
+edit: Mai Tuan Anh
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Read the CSV file into a dataframe
+chicago_schools <- read.csv("C:/Users/Admin/Documents/Zalo Received Files/ChicagoPublicSchools.csv")
+```
+# 1. List the top 5 schools with the highest graduation rates
+```{r}
+top_graduation_schools <- chicago_schools %>%
+  arrange(desc(Graduation_Rate__)) # Sort by 'Graduation_Rate__' in descending order
+
+top_5_schools <- head(top_graduation_schools, 5) # Take the top 5 schools
+```
+
+# 2. Calculate the average safety score for each school type
+```{r}
+average_safety_scores <- chicago_schools %>%
+  group_by("Elementary, Middle, or High School") %>%  # Group by school type
+  summarise(Average_Safety_Score = mean(SAFETY_SCORE, na.rm = TRUE))  # Calculate the average safety score
+```
+# 3. Count the number of "Healthy School" certified schools
+```{r}
+healthy_school_count <- chicago_schools %>%
+  filter(HEALTHY_SCHOOL_CERTIFIED == "Yes") %>%  # Filter schools with "Yes" in Healthy_School
+  count()  # Count the number of such schools
+```
+# 4. Find the school with the highest percentage of students taking Algebra
+```{r}
+highest_algebra_participation <- chicago_schools %>%
+  filter(!is.na(Students_Taking__Algebra__)) %>%  # Remove rows with missing Algebra participation values
+  arrange(desc(Students_Taking__Algebra__)) %>%  # Sort by Algebra participation percentage
+  slice(1)  # Get the school with the highest Algebra participation
+
+```
+# 5. Calculate the average ACT score for high schools
+```{r}
+average_act_score <- chicago_schools %>%
+  filter("Elementary, Middle, or High School" == "HS") %>%  # Filter high schools
+  summarise(Average_ACT_Score = mean("11th Grade Average ACT (2011)", na.rm = TRUE))  # Calculate the average ACT score
+
+```
+# 6. Count the number of schools in each community area
+```{r}
+schools_per_community <- chicago_schools %>%
+  group_by(COMMUNITY_AREA_NAME) %>%  # Group by community area
+  summarise(School_Count = n())  # Count the number of schools
+
+```
+# 7. Identify the school with the highest college enrollment rate
+```{r}
+highest_college_enrollment <- chicago_schools %>%
+  filter(!is.na(COLLEGE_ENROLLMENT)) %>%  # Remove rows with missing college enrollment rate
+  arrange(desc(COLLEGE_ENROLLMENT)) %>%  # Sort by college enrollment rate
+  slice(1)  # Get the school with the highest college enrollment
+
+```
+# 8. Calculate the average environment score for each Network Manager
+```{r}
+average_environment_score <- chicago_schools %>%
+  group_by(Network_Manager) %>%  # Group by Network Manager
+  summarise(Average_Environment_Score = mean(Environment_Score, na.rm = TRUE))  # Calculate the average environment score
+
+```
+# 9. Count schools achieving "Level 1" in CPS Performance Policy
+```{r}
+level_1_count <- chicago_schools %>%
+  filter(CPS_Performance_Policy_Level == "Level 1") %>%  # Filter schools with "Level 1"
+  count()  # Count the number of such schools
+
+```
+# 10. Calculate total college enrollment by community area
+```{r}
+college_enrollment_by_community <- chicago_schools %>%
+  filter(!is.na(COLLEGE_ENROLLMENT)) %>%  # Filter rows with valid College Enrollment data
+  group_by(COMMUNITY_AREA_NAME) %>%  # Group by community area
+  summarise(Total_College_Enrollment = sum(COLLEGE_ENROLLMENT, na.rm = TRUE))  # Calculate total college enrollment
+```
+
+
+
+
+
+
+
+
+
+

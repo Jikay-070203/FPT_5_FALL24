@@ -1,0 +1,87 @@
+
+```{r}
+install.packages('tidyverse')
+install.packages('lubridate')
+install.packages('ggplot')
+install.packages('corrplot')
+```
+```{r}
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(corrplot)
+```
+
+
+```{r}
+install.packages('conflicted')
+library(conflicted)
+```
+
+```{r}
+conflict_prefer('filter', 'dplyr')
+conflict_prefer('lag', 'dplyr')
+```
+
+```{r}
+url <- 'https://dax-cdn.cdn.appdomain.cloud/dax-airline/1.0.1/lax_to_jfk.tar.gz'
+download.file(url, destfile = 'lax_jfk.tar.gz')
+```
+
+```{r}
+untar('lax_jfk.tar.gz')
+sub_airline <- read_csv('lax_to_jfk/lax_to_jfk.csv',
+                        col_types = cols(
+                          'DivDistance' = col_number(),
+                          'DivArrDelay' = col_number()
+                        ))
+```
+
+```{r}
+sub_airline <- sub_airline %>%
+  mutate(FlightDate = as.Date(FlightDate))
+print(sub_airline)
+```
+```{r}
+miss_sub_airline <- sub_airline %>%
+  mutate(across(where(is.numeric), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+print(miss_sub_airline)
+```
+
+```{r}
+Re_col_sub_airline <- sub_airline %>%
+  select(-DivDistance, -DivArrDelay)
+print(Re_col_sub_airline)
+```
+```{r}
+new_val_sub_airline = sub_airline %>%
+  mutate(TotalDelay = ArrDelay + DepDelay)
+print(new_val_sub_airline)
+```
+5. EDA
+```{r}
+summary(sub_airline %>% select(where(is.numeric)))
+ggplot(sub_airline, aes(x = ArrDelay)) +
+  geom_histogram(binwidth = 10, fill = 'blue', alpha = 0.7) +
+  labs(title = 'Phan phoi thoi gian den tre', x = 'Thoi gian tre(phut)', y = 'So luong')
+```
+
+```{r}
+sub_airline_clean <- sub_airline %>%
+  select(where(is.numeric)) %>%
+  na.omit()
+
+sub_airline_imputed <- sub_airline %>%
+  select(where(is.numeric)) %>%
+  mutate(across(everything(), ~ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+```
+
+```{r}
+sub_airline_clean <- sub_airline %>% select(where(~sum(is.na(.)) < nrow(sub_airline)))
+cor_matrix <- cor(sub_airline_clean %>% select(where(is.numeric)), use = 'complete.obs')
+corrplot(cor_matrix, method = 'circle')
+```
+
+
+
+

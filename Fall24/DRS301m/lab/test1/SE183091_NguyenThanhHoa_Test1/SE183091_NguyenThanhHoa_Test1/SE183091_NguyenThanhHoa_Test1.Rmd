@@ -1,0 +1,133 @@
+---
+Nguyễn Thanh Hòa -SE183091
+Test_1
+---
+
+### 1. Install packages and library
+```{r}
+install.packages("RODBC")
+install.packages("odbc")
+install.packages("readr")
+install.packages("DBI")
+```
+
+```{r}
+library(RODBC)
+library(odbc)
+library(readr)
+library(DBI)
+```
+
+### 2. Connect data Server
+
+```{r}
+server <- "localhost"
+dbname <- "ChicagoPublicSchools_test1"
+user <- "sa"
+password <- "123456789"
+
+# Correct the connection string format
+connecttion_string <- paste0("Driver={SQL Server};",
+                             "Server=", server, ";",
+                             "Database=", dbname, ";",
+                             "Uid=", user, ";",
+                             "Pwd=", password, ";",
+                             "charset=UTF-8")
+
+# Establish the connection
+con <- DBI::dbConnect(odbc::odbc(), .connection_string = connecttion_string)
+
+# Check if the connection is successful
+if (is.null(con)) {
+  cat("Connection failed.\n")
+} else {
+  cat("Connection successful.\n")
+}
+```
+
+### 3. Import data into the database
+
+```{r}
+chicago_schools <- read.csv("D:/FPT/Kihoc/fall2024/DRS301m/lab/test/ChicagoPublicSchools.csv")
+dbWriteTable(con,
+             "chicago_public_schools",
+             chicago_schools,
+             overwrite = TRUE)
+
+print("Quá trình nhập dữ liệu đã thành công")
+```
+
+```{r}
+row_count <- dbGetQuery(con,
+                        "SELECT COUNT(*) AS count FROM chicago_public_schools")
+cat("So luong ban ghi da dc nhap:", row_count$count, "\n")
+```
+
+```{r}
+cat("Qua trinh nhap du lieu da hoan thanh\n")
+```
+
+### 4. Summarize the data
+
+```{r}
+chicago_data <- dbReadTable(con,"chicago_public_schools")
+summary(chicago_data)
+
+```
+
+### 5. Retrieve table structure information
+
+```{r}
+columns_query <- dbGetQuery(con,
+                            "SELECT School_ID
+                            FROM chicago_public_schools
+                            WHERE School_ID = 610281")
+
+columns_query
+```
+
+### 6. Rename columns in the chicago_public_schools table
+
+```{r}
+dbExecute(con, "EXEC sp_rename 'chicago_public_schools.[Elementary..Middle..or.High.School]', 'School_level', 'COLUMN';")
+```
+
+### 7. Count the number of elementary schools
+
+```{r}
+query_elementary_count <- dbGetQuery(con,
+                                     "SELECT COUNT(School_level) AS count 
+                                     FROM chicago_public_schools 
+                                     WHERE School_level = 'ES';")
+query_elementary_count
+```
+
+### 8. Find the highest safety score
+
+```{r}
+query_highest_safety_score <- dbGetQuery(con,"
+                                         SELECT MAX(SAFETY_SCORE) AS highest_safety_score 
+                                         FROM chicago_public_schools")
+query_highest_safety_score
+```
+
+### 9. Write R code to clean the columns names of a data frame called chicago_schools.
+
+```{r}
+clean_column_names <- function(names) {
+  names <- gsub("+", "", names)
+  names <- gsub("[._]+$", "", names)
+  names <- gsub("\\.", "", names)
+  return(names)
+}
+```
+
+### 10. Check for missing data
+
+```{r}
+missing_data <- colSums(is.na(chicago_data))
+missing_data
+
+
+
+```

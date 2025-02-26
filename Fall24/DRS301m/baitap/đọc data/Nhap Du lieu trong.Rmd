@@ -1,0 +1,187 @@
+```{r}
+#Nhập dữ liệu từ bàn phím 
+input <- read_line(prompt = "Nhập tên của bạn:")
+print(paste("Tên của bạn là",input))
+```
+
+```{r}
+# Nhập nhiều giá trị từ bàn phím
+numbers <- scan()
+print(numbers)
+```
+
+```{r}
+#đọc dữ liệu từ 1 tệp
+data <- read.table("D:/FPT_ok/Kì học/fall2024/DRS301m/data1/vi du text file.txt",header = TRUE)
+print(data)
+```
+```{r}
+#đọc file csv
+data <- read.csv("D:/FPT_ok/Kì học/fall2024/DRS301m/data1/raw_seoul_bike_sharing.csv",header = TRUE)
+print(data)
+```
+
+```{r}
+install.packages("openxlsx")
+```
+```{r}
+library(openxlsx)
+```
+
+```{r}
+#đọc dữ liệu từ excel
+data <- read.xlsx("D:/FPT_ok/Kì học/fall2024/DRS301m/data1/Telco_customer_churn.xlsx")
+print(data)
+```
+
+```{r}
+#đọc dữ liệu từ url '
+url <- "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-RP0321EN-SkillsNetwork/labs/datasets/raw_seoul_bike_sharing.csv"
+data <- read.csv(url, header = TRUE)
+print(data)
+```
+
+```{r}
+install.packages("jsonlite")
+```
+
+```{r}
+library(jsonlite)
+```
+
+```{r}
+#đọc dữ liệu từ json từ url 
+url <- "https://query.data.world/s/sqwvfsfgw2q5ecupp36jdpgiscxgla?dws=00000"
+data <- fromJSON(url)
+print(data)
+```
+
+```{r}
+install.packages("DBI")
+install.packages("RSQLite")
+```
+
+```{r}
+library(DBI)
+library(RSQLite)
+```
+
+```{r}
+#kết nối đến cơ sơ dữ liệu 
+conn <- dbConnect(RSQLite::SQLite(), dbname = "D:/FPT_ok/Kì học/fall2024/DRS301m/data1/chinook/chinook.db")
+#thực hiện truy vẫn và lấy dữ liệu
+query <- "SELECT * FROM customers"
+data <- dbGetQuery(conn,query)
+
+#đóng kết nối
+dbDisconnect(conn)
+
+print(data)
+```
+
+```{r}
+install.packages("haven")
+library(haven)
+```
+
+```{r}
+#đọc dữ liệu từ tệp SPSS
+data_spss <- read_sav("D:/FPT_ok/Kì học/fall2024/DRS301m/data1/HLTH1025_2016.sav")
+print(data_spss)
+```
+
+```{r}
+#Đọc dữ liệu từ tệp STATA
+data_stata <- read_dta("D:/FPT_ok/Kì học/fall2024/DRS301m/data1/ZZHR62FL.DTA")
+print(data_stata)
+```
+
+```{r}
+data()
+```
+
+```{r}
+#tải dataset mtcars
+data("mtcars")
+#hiển thị 6 dòng đầu
+head(mtcars)
+```
+
+
+```{r}
+#tóm tắt các biến 
+summary(mtcars)
+```
+
+#### Demo
+
+```{r}
+
+#đọc dữ liệu từ url '
+url <- "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-RP0321EN-SkillsNetwork/labs/datasets/raw_seoul_bike_sharing.csv"
+#đường dẫn lưu file trên máy tính 
+file_path <- "D:/FPT_ok/Kì học/fall2024/DRS301m/data1/raw_seoul_bike_sharing.csv"
+
+#Tải về 
+download.file(url,file_path)
+```
+
+```{r}
+#đọc dữ liệu từ file csv
+data <- read.csv(file_path)
+
+#Hiển thị 6 dòng đầu 
+head(data)
+```
+
+### a.Hiển thị các dòng đầu và cuối 
+
+```{r}
+#hiển thị 6 dòng đầu 
+head(data)
+#hiển thị 6 dòng cuối 
+tail(data)
+```
+
+
+### d.kiểm tra dữ liệu bị thiếu
+
+```{r}
+sum(is.na(data))
+```
+
+### e. Tính
+
+```{r}
+#tính trung bình 
+mean(data$TEMPERATURE,na.rm=TRUE)
+#tìm giá trị trung vị 
+median(data$TEMPERATURE,na.rm=TRUE)
+#Tính độ lệch chuẩn
+sd(data$TEMPERATURE,na.rm=TRUE)
+#Tính phương sai
+var(data$TEMPERATURE,na.rm=TRUE)
+```
+
+### kiểm tra kiểu dữ liệu 
+
+```{r}
+str(data$TEMPERATURE)
+```
+
+### chuyển đổi về kiểu số 
+
+```{r}
+data$TEMPERATURE <- as.numeric(data$TEMPERATURE)
+```
+
+Kiểm tra lại các giá trị không thể chuyển đổi 
+```{r}
+#xem những giá trị không thể chuyển đổi
+data[is.na(data$Temperature), "TEMPERATURE"]
+
+5.Đánh giá dữ liệu 
+a.Phát hiện giá trị ngoại lại 
+```{r}
+boxplot((data$TEMPERATURE,main = "Box"))
+

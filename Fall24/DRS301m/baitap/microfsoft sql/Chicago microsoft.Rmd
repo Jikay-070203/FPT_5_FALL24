@@ -1,0 +1,109 @@
+--- #cài đặt packages
+```{r}
+install.packages("RODBC")
+install.packages("odbc")
+install.packages('readr')
+install.packages("DBI")
+```
+---Thiết lập thư viện 
+```{r}
+library(RODBC)
+library(odbc)
+library(readr)
+library(DBI)
+```
+Kết nối data server
+```{r}
+#thay đổi các thông số kết nối 
+server <- "localhost"
+dbname <-"Chicago"
+user <- "sa"
+password <-"070203"
+
+connection_string <-paste0("Driver={SQL Server};",
+                        "server=",server,";",
+                        "Database=", dbname,";",
+                        "Uid=",user,";",
+                        "Pwd=",password,";",
+                        "character=UTF-8")
+con <- dbConnect(odbc::odbc(), .connection_string = connection_string)
+#kiểm tra 
+if (is.null(con)) {
+  cat("kết nối không thành công.\n")
+} else {
+  cat("Kết nối thành công đến cơ sở dữ liệu ",dbname, ".\n")
+}
+```
+
+
+Kết nối data server
+```{r}
+#thay đổi các thông số kết nối 
+server <- "localhost"
+dbname <-"ChicagoPublicSchools"
+user <- "sa"
+password <-"070203"
+
+connection_string <-paste0("Driver={SQL Server};",
+                        "server=",server,";",
+                        "Database=", dbname,";",
+                        "Uid=",user,";",
+                        "Pwd=",password,";",
+                        "character=UTF-8")
+con <- dbConnect(odbc::odbc(), .connection_string = connection_string)
+#kiểm tra 
+if (is.null(con)) {
+  cat("kết nối không thành công.\n")
+} else {
+  cat("Kết nối thành công đến cơ sở dữ liệu ",dbname, ".\n")
+}
+```
+
+
+```{r}
+
+# Thay đổi các thông số kết nối
+server <- "localhost"
+dbname <- "ChicagoPublicSchools"
+user <- "sa"
+password <- "070203"
+
+# Chuỗi kết nối
+connection_string <- paste0("Driver={SQL Server};",
+                            "Server=", server, ";",
+                            "Database=", dbname, ";",
+                            "Uid=", user, ";",
+                            "Pwd=", password, ";",
+                            "TrustServerCertificate=yes;")
+
+# Kết nối
+con <- tryCatch({
+  dbConnect(odbc::odbc(), .connection_string = connection_string)
+}, error = function(e) {
+  cat("Lỗi kết nối: ", e$message, "\n")
+  return(NULL)
+})
+
+# Kiểm tra kết nối
+if (!is.null(con)) {
+  cat("Kết nối thành công đến cơ sở dữ liệu ", dbname, ".\n")
+} else {
+  cat("Kết nối không thành công.\n")
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+#nhập data
+dbWriteTable(con, "chicago_public_schools", chicago_schools, overwrite = TRUE)
+print("Quá trình nhập dữ liệu thành công")
+```

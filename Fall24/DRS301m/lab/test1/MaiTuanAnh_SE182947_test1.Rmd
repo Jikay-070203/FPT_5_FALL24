@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r}
+install.packages("odbc")
+install.packages("readr")
+install.packages("RODBC")
+install.packages('DBI')
+```
+```{r}
+install.packages("RMySQL")
+install.packages("DBI")
+install.packages("RJDBC")
+install.packages('rJava')
+```
+```{r}
+library(RMySQL)
+library(DBI)
+library(RJDBC)
+library(rJava)
+```
+
+
+### 1. Install packages and set up libraries
+
+```{r}
+library(DBI)   # Để sử dụng dbWriteTable
+library(odbc)  # Nếu bạn kết nối bằng ODBC
+library(readr) # Để đọc file CSV
+library(RODBC)
+```
+
+### 2. Connect to the data server
+
+```{r}
+server <- "localhost,1433"  # Địa chỉ máy chủ SQL Server
+database <- "chinhook"       # Tên cơ sở dữ liệu
+user <- "sa"                 # Tên người dùng
+password <- "742511"    # Mật khẩu
+
+# Tạo chuỗi kết nối
+connection_string <- paste0("Driver={SQL Server};",
+                            "Server=", server, ";",
+                            "Database=", database, ";",
+                            "Uid=", user, ";",
+                            "Pwd=", password, ";",
+                            "charset=UTF-8")  # Tạo kết nối hỗ trợ Unicode
+```
+
+```{r}
+con <- dbConnect(odbc::odbc(), .connection_string = connection_string)
+ 
+# Kiểm tra kết nối
+if (is.null(con)) {
+  cat("Kết nối không thành công.\n")
+} else {
+  cat("Kết nối thành công đến cơ sở dữ liệu ", database, ".\n")
+}
+```
+
+### 3. Import data into the database
+
+```{r}
+chicago_data <- read.csv("ChicagoPublicSchool.csv", stringsAsFactors = FALSE)
+
+dbWriteTable(con,
+             name="ChiPS",
+             value=chicago_data,
+             overwrite=TRUE)
+```
+
+```{r}
+# Kiểm tra số lượng bản ghi đã được nhập
+row_count <- dbGetQuery(con, "SELECT COUNT(*) AS count 
+                              FROM ChiPS")
+cat("Số lượng bản ghi đã được nhập:", row_count$count, "\n")
+
+# In ra thông báo khi quá trình nhập dữ liệu hoàn thành
+cat("Quá trình nhập dữ liệu đã hoàn thành thành công!\n")
+```
+
+### 4. Summarize the data
+
+```{r}
+chicago_data <- dbReadTable(con, "ChiPS")
+summary(chicago_data)
+```
+
+### 5. Retrieve table structure information
+
+```{r}
+columns_query <- dbGetQuery(con, "
+                            SELECT School_ID
+                            FROM ChiPS
+                            WHERE School_ID = 610281")
+print(columns_query)
+```
+
+### 6. Rename columns in the chicago_public_schools table
+
+```{r}
+dbExecute(con, "
+          EXEC sp_rename 'ChiPS.[Elementary_Middle_or_High_School]', 'School_level', 'COLUMN';
+          ")
+```
+
+### 7. Count the number of elementary schools
+
+```{r}
+query_elementary_count <- dbGetQuery(con,"
+                                     SELECT COUNT(SChool_level) AS count
+                                     FROM ChiPS
+                                     WHERE School_level = 'ES';
+                                     ")
+print(query_elementary_count)
+```
+
+### 8. Find the highest safety score
+
+```{r}
+query_highest_safety_score <- dbGetQuery(con, "
+                                         SELECT MAX(SAFETY_SCORE) AS highest_safety_score 
+                                         FROM ChiPS
+                                         ") 
+
+print(query_highest_safety_score)
+```
+
+### 9. Write R code to clean the column names of a data frame called `chicago_schools`. 
+
+```{r}
+clean_column_names <-  function(names) {
+  names <-  gsub("__+", "_", names)
+  
+  names <- gsub("[_\\.]+$", "", names)
+  
+  names <- gsub("\\.", "_", names)
+  
+  return(names)
+}
+```
+
+### 10. Check for missing data
+
+```{r}
+missing_data <-  colSums(is.na(chicago_data))
+print(missing_data)
+```

@@ -1,0 +1,6 @@
+ID,Name,Age,Gender,Score
+1,Huy,23,Nam,85
+2,Toàn,25,Nam,90
+3,Trung,22,Nam,78
+4,Lâm,24,Nam,88
+5,Khanh,21,Nữ,95

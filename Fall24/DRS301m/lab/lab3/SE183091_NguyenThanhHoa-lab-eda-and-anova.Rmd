@@ -1,0 +1,240 @@
+---
+title: "SE183091_NguyenThanhHoa-lab-eda-and-anova"
+output: html_document
+date: "2024-10-16"
+---
+## TASK 1
+```{r}
+# Load the required libraries
+library(tidyverse)
+library(readr)
+library(httr)
+```
+
+```{r}
+# Kaggle has no internet access for direct file download, so use httr to download the file
+url <- "https://dax-cdn.cdn.appdomain.cloud/dax-airline/1.0.1/lax_to_jfk.tar.gz"
+
+# Use httr to download the file
+GET(url, write_disk("lax_to_jfk.tar.gz", overwrite = TRUE))
+```
+
+```{r}
+# Untar the file in Kaggle (no need for tar = "internal")
+untar("lax_to_jfk.tar.gz")
+
+# Read the CSV file
+sub_airline <- read_csv("lax_to_jfk/lax_to_jfk.csv",
+                        col_types = cols('DivDistance' = col_number(), 
+                                         'DivArrDelay' = col_number()))
+
+# Check the first few rows
+head(sub_airline)
+```
+
+```{r}
+# Check the dimensions of the dataset
+dim(sub_airline)
+
+# Check the names of the columns (variables)
+colnames(sub_airline)
+
+# Summary of the dataset to check for missing values or unusual entries
+summary(sub_airline)
+
+```
+Rows and Columns:
+
+  +The dataset contains X rows and Y columns. This information can be obtained using the dim() function, which provides a quick overview of the size of the dataset.
+    
+Main Variables:
+
+  +The primary variables in the dataset include:
+
+        FlightNumber: Identifies each flight uniquely.
+        Date: The date of the flight.
+        DepartureTime: The time the flight departs from LAX.
+        ArrivalTime: The time the flight arrives at JFK.
+        Duration: The flight duration.
+        Other relevant fields related to flight details.
+    
+Data Quality Observations:
+
+  +Missing Values: From the summary statistics, there may be some NA values in certain columns, indicating missing entries.
+
+  +Unusual Entries: No major unusual entries were observed, but you may notice extreme values for flight duration (e.g., abnormally long flights) that might need further investigation.
+    
+##TASK 2
+```{r}
+# Boxplot of arrival delays by airline
+ggplot(sub_airline, aes(x = Reporting_Airline, y = ArrDelay)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Arrival Delays by Airline",
+       x = "Airline",
+       y = "Arrival Delay (minutes)") +
+  theme_minimal()
+
+```
+
+```{r}
+# Filter for Alaska Airlines flights (assuming code "AS")
+alaska_flights <- sub_airline %>% filter(Reporting_Airline == "AS")
+
+# Scatter plot of departure delays vs. arrival delays for Alaska Airlines
+ggplot(alaska_flights, aes(x = DepDelay, y = ArrDelay)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Departure Delays vs. Arrival Delays for Alaska Airlines",
+       x = "Departure Delay (minutes)",
+       y = "Arrival Delay (minutes)") +
+  theme_minimal()
+
+```
+
+
+```{r}
+# Calculate the average flight delay by airline and day of the week
+avg_delay <- sub_airline %>%
+  group_by(Reporting_Airline, DayOfWeek) %>%
+  summarise(AvgDelay = mean(ArrDelay, na.rm = TRUE), .groups = "drop")
+
+# Create a heatmap of average flight delays by airline and day of week
+ggplot(avg_delay, aes(x = DayOfWeek, y = Reporting_Airline, fill = AvgDelay)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "Heatmap of Average Flight Delays by Airline and Day of Week",
+       x = "Day of the Week",
+       y = "Airline",
+       fill = "Avg Delay (minutes)") +
+  theme_minimal()
+
+
+```
+Highest and Lowest Median Arrival Delay (Boxplot):
+
+  +The airline with the highest median arrival delay seems to stand out with a taller boxplot, indicating more frequent delays.
+    
+  +The airline with the lowest median arrival delay has a boxplot positioned lower, indicating better on-time performance.
+
+Pattern for Alaska Airlines (Scatter Plot):
+
+  +For Alaska Airlines, there is a positive correlation between departure delays and arrival delays. As departure delays increase, arrival delays also tend to increase, suggesting that delayed takeoffs often lead to delayed arrivals.
+
+Insights from the Heatmap:
+
+  +The heatmap reveals that some days of the week have consistently higher delays across multiple airlines, possibly due to higher traffic or operational challenges.
+    
+  +Certain airlines show more variability in delays depending on the day, while others have relatively stable performance across the week.
+
+## TASK3:
+```{r}
+# Calculate correlation between DepDelayMinutes and ArrDelayMinutes
+correlation <- cor(sub_airline$DepDelayMinutes, sub_airline$ArrDelayMinutes, use = "complete.obs")
+correlation
+```
+
+```{r}
+# Linear regression: CarrierDelay vs. ArrDelayMinutes
+linear_model <- lm(ArrDelayMinutes ~ CarrierDelay, data = sub_airline)
+summary(linear_model)
+
+```
+
+```{r}
+# Load necessary libraries
+library(corrplot)
+library(dplyr)
+
+# Load your dataset (replace 'your_data.csv' with the actual file path)
+data <- read.csv("D:/FPT/Kihoc/fall2024/DRS301m/lab/lab3/lax_to_jfk/lax_to_jfk.csv")
+
+# Select numeric columns from the dataset and store them in 'numeric_vars'
+numeric_vars <- data %>% select_if(is.numeric)
+
+# Remove columns with too many missing values
+numeric_vars_clean <- numeric_vars %>% select_if(~sum(is.na(.)) < nrow(numeric_vars))
+
+# Calculate the correlation matrix
+cor_matrix <- cor(numeric_vars_clean, use = "complete.obs")
+
+# Visualize the correlation matrix
+corrplot(cor_matrix, method = "color", tl.cex = 0.7, addCoef.col = "black", number.cex = 0.7)
+
+
+
+```
+Correlation between Departure Delays and Arrival Delays:
+
+  +The correlation coefficient of 0.921 indicates a very strong positive correlation between departure delays and arrival delays. This implies that as departure delays increase, arrival delays also tend to increase significantly. It suggests that factors causing delays at departure may directly impact the timeliness of arrivals.
+  
+Linear Regression between CarrierDelay and ArrDelayMinutes:
+
+  +The regression analysis shows that for each additional minute of CarrierDelay, the arrival delay increases by approximately 0.85 minutes. The strong statistical significance (p-value < 2e-16) indicates a robust relationship. This suggests that managing carrier delays could have a meaningful impact on reducing overall arrival delays.
+  
+Correlation Matrix Insights:
+
+  +Examining the correlation matrix, factors such as CarrierDelay and DepDelayMinutes likely exhibit strong relationships with ArrDelayMinutes. Variables with higher correlation coefficients (close to 1 or -1) indicate that they are more strongly associated with arrival delays. Understanding these relationships can help identify key areas for improvement in operational efficiency.
+  
+## TASK 4
+
+```{r}
+# Load dplyr if not already loaded
+library(dplyr)
+
+# Calculate average ArrDelayMinutes for each airline
+average_arr_delay <- sub_airline %>%
+  group_by(Reporting_Airline) %>%
+  summarise(Average_ArrDelay = mean(ArrDelayMinutes, na.rm = TRUE))
+
+# Display the results
+average_arr_delay
+
+```
+
+
+```{r}
+# Filter the data for American Airlines and Alaska Airlines
+aa_ak_data <- sub_airline %>%
+  filter(Reporting_Airline %in% c("AA", "AS")) # Replace with actual abbreviations if different
+
+# Perform ANOVA test
+anova_result <- aov(ArrDelayMinutes ~ Reporting_Airline, data = aa_ak_data)
+summary(anova_result)
+
+
+```
+
+```{r}
+# Load ggplot2 if not already loaded
+library(ggplot2)
+
+# Create bar plot for average arrival delays by airline
+ggplot(average_arr_delay, aes(x = reorder(Reporting_Airline, Average_ArrDelay), y = Average_ArrDelay)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() + # Optional: flip the coordinates for better readability
+  labs(title = "Average Arrival Delays by Airline",
+       x = "Airline",
+       y = "Average Arrival Delay (Minutes)") +
+  theme_minimal()
+
+
+```
+Airline with the Highest and Lowest Average Arrival Delay:
+
+  +Highest Average Arrival Delay: PA (1) with an average delay of 33.55 minutes.
+    
+  +Lowest Average Arrival Delay: AA (American Airlines) with an average delay of 10.12 minutes.
+  
+ANOVA Results:
+
+  +The ANOVA test yielded a p-value of 0.463, which is greater than the conventional significance level of 0.05.
+    
+  +Conclusion: This indicates that there is no statistically significant difference in arrival delays between American Airlines and Alaska Airlines. In practical terms, it suggests that passengers traveling on these airlines can expect similar delays on average.
+
+Insights from the Bar Plot:
+
+  +The bar plot effectively visualizes the differences in average delays across airlines. It clearly shows that PA (1) has a significantly higher average arrival delay compared to other airlines, while AA has the lowest.
+    
+  +Surprising Results: The relatively high delays for airlines like HP (19.21 minutes) and B6 (18.55 minutes) may be unexpected, especially if they are generally considered reliable airlines. It highlights the variability in performance among different airlines.
+
+
+

@@ -1,0 +1,542 @@
+---
+title: "R Notebook"
+edit: Nguyễn Thanh Hòa FTU-HCM
+---
+
+# 1. **Dữ liệu Quakes**
+
+-   lat: Vĩ độ nơi xảy ra động đất.
+
+-   long: Kinh độ nơi xảy ra động đất.
+
+-   depth: Độ sâu của động đất (km).
+
+-   mag: Cường độ của động đất.
+
+-   stations: Số lượng trạm đã ghi nhận động đất
+
+# 2. **Mô tả Dữ liệu Quakes**
+
+```{r}
+library(data.table)
+data(quakes)
+summary(quakes)
+```
+
+# 3. **Hiển thị 6 dòng dữ liệu đầu tiên**
+
+```{r}
+head(quakes)
+
+```
+
+# 4. **Phân tích Dữ liệu Quakes**
+
+## a. Biểu đồ phân tán Depth và Cường độ
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+# Biểu đồ phân tán
+
+
+```
+
+## b. Biểu đồ tần suất và Depth
+```{r}
+ggplot(quakes, aes(x = depth, y = mag)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  labs(title = "Bieu do phan tan Depth va Mag",
+    x= "Depth (km)", y = "Mag") +
+  theme_minimal()
+```
+
+```{r}
+# Biểu đồ histogram
+# Biểu đồ histogram
+ggplot(quakes, aes(x = mag)) +
+  geom_histogram(binwidth = 0.2, fill = "orange", color = "black") +
+  labs(title = "Histogram of Earthquake Magnitude",
+       x = "Cường độ (magnitude)",  # X-axis label in Vietnamese
+       y = "Tần suất") +            # Y-axis label in Vietnamese
+  theme_minimal()
+
+
+
+```
+
+## c. Biểu đồ tần suất Cường độ (magnitude)
+
+```{r}
+# Biểu đồ histogram
+
+
+```
+
+## **d. Xác định các điểm động đất với Leaflet**
+
+```{r}
+install.packages("leaflet")
+# Cài đặt và load thư viện leaflet
+library(leaflet)
+```
+b.Biểu đồ tần xuất và depth
+#biểu đồ 
+```{r}
+library(dplyr) 
+```
+
+```{r}
+# Tạo bản đồ động đất
+# Install leaflet if not already installed
+if (!require(leaflet)) install.packages("leaflet")
+
+# Load the leaflet library
+library(leaflet)
+
+# Tạo bản đồ động đất
+leaflet(quakes) %>%
+  addTiles() %>%
+  addCircles(
+    lat = ~lat, lng = ~long, weight = 1, radius = ~mag * 5000, 
+    color = ~ifelse(mag >= 5, "red", "blue"),
+    popup = ~paste("Magnitude:", mag, "<br>", "Depth:", depth, "km")
+  ) %>%
+  setView(lng = 180, lat = -20, zoom = 4)
+
+```
+
+# 5. Phân tích Dữ liệu Quakes
+
+## a. Phân cụm các điểm động đất
+
+```{r}
+install.packages("cluster")
+
+```
+
+```{r}
+library(cluster)
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+# dữ liệu cho phân cụm
+quakes_data <- quakes[, c("lat", "long", "depth")]
+
+# Tạo mô hình phân cụm K-means
+set.seed(123)
+kmeans_result <- kmeans(quakes_data, centers = 3, nstart = 25)
+
+
+# Thêm nhãn cụm vào dữ liệu
+quakes$cluster <- as.factor(kmeans_result$cluster)
+
+# Vẽ biểu đồ phân cụm
+ggplot(quakes, aes(x = long, y = lat, color = cluster)) + 
+  geom_point() +
+  labs(title = "Phân cụm các điểm động đất",
+       x = "kinh độ",
+       y = "Vĩ độ") +
+  theme_minimal()
+```
+
+## 2. Dự đoán cường độ của động đất
+
+```{r}
+install.packages("caret")
+
+```
+
+```{r}
+library(caret)
+```
+
+```{r}
+set.seed(123)
+train_index <- createDataPartition(quakes$mag, p = 0.8, list = FALSE)
+train_data <- quakes[train_index, ]
+test_data <- quakes[-train_index, ]
+
+# Huấn luyện mô hình hồi quy tuyến tính
+# ~ lat + long + depth  dự đoán `mag` dựa trên `lat`, `long`, và `depth`
+model <- lm(mag ~ lat + long +depth, data = train_data)
+
+#Sử dụng mô hình đã huấn luyện đi dự đoán độ lớn của các trần động đất trong tập kiểm tra 
+prediction <- predict(model, test_data)
+
+#đánh giá mô hình 
+#lấy giá trị thực tế của độ lớn từ tập kiểm tra 
+actuals <- test_data$mag
+
+#tạo data.frame chưa giá trị thực tế và giá trị dự đoán đế so sánh 
+results <- data.frame(Actual = actuals, Predicted = predictions)
+
+#sai số tuyệt đối trung bình giữa giá trị thực tế và giá trị dự đoán 
+MAE <- mean(abs(results$Actual - results$Predicted))
+
+# Sử dụng mô hình đã huấn luyện để dự đoán độ lớn của các trận động đất trong tập kiểm tra
+MSE <- mean((results$Actual - results$Predicted)^2)
+RMSE <- sqrt(MSE)
+R_squared <- summary(model)$r.squared
+# Đánh giá mô hình
+# Lấy giá trị thực tế của độ lớn từ tập kiểm tra
+list(MAE =MAE ,MSE= MSE)
+
+# Tạo data.frame chứa giá trị thực tế và giá trị dự đoán để so sánh
+
+
+# Sai số tuyệt đối trung bình giữa giá trị thực tế và giá trị dự đoán
+
+
+#tính sai số trung bình theo cùng đơn vị đo lường như giá trị thực tế
+
+
+# In kết quả đánh giá mô hình
+
+
+```
+
+Với MAE xấp xỉ 0.3, mô hình dự đoán độ lớn của các trận động đất có sai số trung bình khoảng 0.3 độ. Đây là mức sai số tương đối thấp, nhưng còn tùy thuộc vào ngữ cảnh thực tế và yêu cầu độ chính xác trong ứng dụng cụ thể.
+
+MSE là 0.14, cho thấy mô hình không có nhiều sai số nghiêm trọng. Tuy nhiên, do MSE phóng đại các sai số lớn, nên nó cho biết mô hình đang làm việc khá tốt trong việc hạn chế các sai số lớn.
+
+RMSE khoảng 0.37 cho thấy sai số trung bình của các dự đoán là khoảng 0.37 độ. Đây là một sai số tương đối nhỏ, nhưng đánh giá hiệu quả dự đoán chính xác vẫn cần cân nhắc ngữ cảnh ứng dụng
+
+Với giá trị R-squared khoảng 0.08, mô hình chỉ giải thích được 8% biến động trong độ lớn của các trận động đất. Do đó mô hình hiện tại chưa đủ mạnh để giải thích phần lớn biến động của dữ liệu, và có thể cần cải thiện hoặc thêm vào các biến số khác.
+
+# 6. Cải thiện Mô hình dự đoán
+
+## **a. Mô hình hồi quy đa thức bậc 2**
+
+xây dựng **mô hình hồi quy đa thức bậc 2** để cải thiện độ chính xác ( **biến tương tác và bình phương của các biến đầu vào)** vào mô hình.
+
+-   `lat^2`, `long^2`, `depth^2` (bình phương của các biến)
+
+-   Các tương tác giữa các biến: `lat * long`, `lat * depth`, `long * depth`
+
+```{r}
+set.seed(123)
+train_index <- createDataPartition(quakes$mag, p = 0.8, list = FALSE)
+train_data <- quakes[train_index, ]
+test_data <- quakes[-train_index, ]
+
+# Xây dựng mô hình hồi quy đa thức bậc 2
+
+
+# Dự đoán trên tập kiểm tra
+
+
+# Đánh giá mô hình
+actuals <- test_data$mag
+
+
+# Tính các chỉ số MAE, MSE, RMSE và R-squared
+
+
+# In kết quả đánh giá mô hình hồi quy đa thức bậc 2
+
+
+```
+
+### Vẽ biểu đồ phân phối cho tập huấn luyện và kiểm tra bậc 2
+
+```{r}
+# Thêm cột 'Dataset' để xác định tập dữ liệu
+
+
+# Kết hợp tập huấn luyện và kiểm tra thành một dataframe duy nhất
+
+
+# Vẽ Distribution Plot sử dụng ggplot2
+
+
+```
+
+## b. Xây dựng mô hình hồi quy đa thức bậc 5
+
+```{r}
+# Chuẩn bị dữ liệu
+set.seed(123)
+train_index <- createDataPartition(quakes$mag, p = 0.8, list = FALSE)
+train_data <- quakes[train_index, ]
+test_data <- quakes[-train_index, ]
+
+
+
+```
+
+### Vẽ biểu đồ phân phối cho tập huấn luyện và kiểm tra bậc 5
+
+```{r}
+# Cài đặt và nạp thư viện ggplot2 nếu cần
+if (!require(ggplot2)) install.packages("ggplot2")
+library(ggplot2)
+
+
+
+```
+
+## Sử dụng Mô Hình Random Forest
+
+```{r}
+install.packages("randomForest")
+```
+
+```{r}
+
+library(randomForest)
+
+# Huấn luyện mô hình Random Forest
+
+
+# Dự đoán trên tập kiểm tra
+
+
+# Đánh giá mô hình
+
+
+```
+
+| Chỉ Số    | Hồi Quy Tuyến Tính | randomForest |
+|-----------|--------------------|--------------|
+| MAE       | 0.2999143          | 0.2909389    |
+| MSE       | 0.1399701          | 0.1359765    |
+| RMSE      | 0.3741258          | 0.3687499    |
+| R-squared | 0.07984836         | 0.1181608    |
+
+: So sánh Tổng Quan
+
+-   **MAE, MSE, và RMSE**: Các chỉ số này đều giảm nhẹ với mô hình Hồi Quy Tuyến Tính, mô hình randomForest đã cải thiện độ chính xác của dự đoán so với cả mô hình hồi quy tuyến tính .
+
+-   **R-squared**: Với giá trị R-squared tăng lên 0.118, mô hình randomForest giải thích được khoảng 11.8% biến động trong dữ liệu. Chỉ số này có cải thiện so với cả hồi quy tuyến tính cho thấy khả năng mô hình randomForest phản ánh tốt hơn mối quan hệ giữa các biến số.
+
+## Tìm kiếm tham số tối ưu cho mô hình hồi quy tuyến tính
+
+```{r}
+library(caret)
+
+# Thiết lập tham số cho Grid Search
+
+
+# Hàm để huấn luyện mô hình hồi quy tuyến tính với bậc đa thức
+
+
+# Huấn luyện mô hình và lấy kết quả
+
+
+```
+
+## h. Tìm kiếm tham số tối ưu cho mô hình hồi quy đa thức
+
+```{r}
+# Thiết lập tham số cho Grid Search
+poly_grid <- expand.grid(degree = 1:11)  # Bậc từ 1 đến 11
+
+# Hàm để huấn luyện mô hình hồi quy đa thức
+train_poly_model <- function(degree) {
+  formula <- as.formula(paste("mag ~ poly(lat, ", degree, ") + poly(long, ", degree, ") + poly(depth, ", degree, ")", sep = ""))
+  model <- lm(formula, data = train_data)
+  return(model)
+}
+
+# Huấn luyện mô hình và lấy kết quả
+results_poly <- sapply(poly_grid$degree, function(degree) {
+  model <- train_poly_model(degree)
+  predictions <- predict(model, test_data)
+  RMSE <- sqrt(mean((test_data$mag - predictions)^2))
+  return(RMSE)
+})
+
+best_degree_poly <- poly_grid$degree[which.min(results_poly)]
+cat("Bậc tốt nhất cho mô hình hồi quy đa thức:", best_degree_poly, "\n")
+
+```
+
+## f. Tìm kiếm tham số tối ưu cho mô hình Random Forest
+
+Đối với Random Forest,có thể điều chỉnh các tham số như số lượng cây (`ntree`) và số biến được sử dụng tại mỗi lần phân tách (`mtry`).
+
+```{r}
+# Thiết lập tham số cho Grid Search
+rf_grid <- expand.grid(mtry = c(1, 2, 3), ntree = c(50, 100, 200))
+
+# Huấn luyện mô hình Random Forest với Grid Search
+
+
+```
+
+# Đánh Dấu Vùng Dự Đoán Động Đất trên Bản Đồ
+
+## Cài đặt và Tải các Thư Viện
+
+```{r}
+# install.packages("randomForest")
+# install.packages("leaflet")
+install.packages("viridis")  # Để sử dụng bảng màu viridis
+
+
+```
+
+## 1. Chuẩn Bị Dữ Liệu
+
+```{r}
+library(randomForest)
+library(leaflet)
+library(viridis)
+
+# Chuẩn bị dữ liệu
+set.seed(123)
+train_index <- createDataPartition(quakes$mag, p = 0.8, list = FALSE)
+train_data <- quakes[train_index, ]
+test_data <- quakes[-train_index, ]
+
+# Huấn luyện mô hình randomForest
+rf_model <- randomForest(mag ~ lat + long + depth, data = train_data, ntree = 100)
+
+# Dự đoán trên tập kiểm tra
+rf_predictions <- predict(rf_model, test_data)
+
+# Thêm dự đoán vào dữ liệu kiểm tra
+test_data$predicted_mag <- rf_predictions
+
+```
+
+## Tạo bản đồ với màu dựa trên độ lớn dự đoán
+
+```{r}
+# Định nghĩa màu sắc dựa trên độ lớn của động đất
+color_pal <- colorNumeric(palette = "viridis", domain = test_data$predicted_mag)
+
+# Tạo bản đồ
+map <- leaflet(test_data) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~long, lat = ~lat,
+    color = ~color_pal(predicted_mag),
+    radius = 5,
+    popup = ~paste("Predicted Magnitude:", round(predicted_mag, 2), "<br>",
+                   "Actual Magnitude:", mag, "<br>",
+                   "Depth:", depth)
+  ) %>%
+  addLegend(pal = color_pal, values = ~predicted_mag, title = "Cường độ dự đoán",
+            position = "bottomright")
+
+# Hiển thị bản đồ
+map
+
+```
+
+```{r}
+# Chuẩn bị dữ liệu
+set.seed(123)
+train_index <- createDataPartition(quakes$mag, p = 0.8, list = FALSE)
+train_data <- quakes[train_index, ]
+test_data <- quakes[-train_index, ]
+
+```
+
+## 2. Huấn Luyện Mô Hình randomForest
+
+```{r}
+# Huấn luyện mô hình randomForest
+rf_model <- randomForest(mag ~ lat + long + depth, data = train_data, ntree = 100)
+
+# Dự đoán trên tập kiểm tra
+rf_predictions <- predict(rf_model, test_data)
+
+# Thêm dự đoán vào dữ liệu kiểm tra
+test_data$predicted_mag <- rf_predictions
+
+```
+
+## 3. Tạo Bản Đồ với `leaflet`
+
+```{r}
+install.packages("leaflet")
+```
+
+```{r}
+library(leaflet)
+```
+
+```{r}
+# Định nghĩa màu sắc dựa trên độ lớn của động đất
+color_pal <- colorNumeric(palette = "viridis", domain = test_data$predicted_mag)
+
+# Tạo bản đồ
+map <- leaflet(test_data) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~long, lat = ~lat,
+    color = ~color_pal(predicted_mag),
+    radius = 5,
+    popup = ~paste("Predicted Magnitude:", round(predicted_mag, 2), "<br>",
+                   "Actual Magnitude:", mag, "<br>",
+                   "Depth:", depth)
+  ) %>%
+  addLegend(pal = color_pal, values = ~predicted_mag, title = "CƯờng độ dự đoán",
+            position = "bottomright")
+
+# Hiển thị bản đồ
+map
+
+```
+
+## 4. Lưu Bản Đồ
+
+```{r}
+# Lưu bản đồ dưới dạng HTML
+library(htmlwidgets)
+saveWidget(map, file = "earthquake_predictions_map.html")
+
+```
+
+# Huấn luyện mô hình hồi quy đa thức
+
+```{r}
+# Huấn luyện mô hình hồi quy đa thức với bậc 9
+best_degree_poly <- 9
+poly_model <- lm(mag ~ poly(lat, best_degree_poly) + poly(long, best_degree_poly) + poly(depth, best_degree_poly), data = train_data)
+
+```
+
+## Tạo lưới điểm để dự đoán
+
+```{r}
+# Tạo lưới điểm cho lat và long
+lat_seq <- seq(min(quakes$lat), max(quakes$lat), length.out = 100)
+long_seq <- seq(min(quakes$long), max(quakes$long), length.out = 100)
+
+# Tạo lưới điểm
+grid <- expand.grid(lat = lat_seq, long = long_seq, depth = mean(quakes$depth)) # Sử dụng giá trị trung bình của depth
+grid$predicted_mag <- predict(poly_model, newdata = grid)
+
+```
+
+## Vẽ bản đồ với vùng dự đoán
+
+```{r}
+library(ggplot2)
+
+# Vẽ bản đồ với vùng dự đoán
+earthquake_map <- ggplot() +
+  geom_tile(data = grid, aes(x = long, y = lat, fill = predicted_mag), alpha = 0.7) +  # Vùng dự đoán
+  scale_fill_gradient2(low = "blue", mid = "yellow", high = "red", midpoint = mean(grid$predicted_mag), name = "Predicted Magnitude") +
+  geom_point(data = quakes, aes(x = long, y = lat, color = mag), size = 1, alpha = 0.6) +  # Dữ liệu động đất thực tế
+  scale_color_gradient(low = "blue", high = "red", name = "Actual Magnitude") +
+  labs(title = "Predicted Earthquake Magnitude using Polynomial Regression (Degree 9)",
+       x = "Longitude",
+       y = "Latitude") +
+  theme_minimal()
+
+# Hiển thị bản đồ
+print(earthquake_map)
+
+```
